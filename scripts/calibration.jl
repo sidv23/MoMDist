@@ -1,44 +1,44 @@
 using DrWatson
-@quickactivate "wrips-code"
+@quickactivate projectdir()
+
 
 begin
     using Ripserer, PersistenceDiagrams, PersistenceDiagramsBase
     # using InteractiveUtils, MLDataUtils
     using Random, Distributions, Parameters, Pipe, ProgressMeter, Plots, StatsPlots, JLD2
-    using Distances, LinearAlgebra, Statistics, LazySets, Roots, Hyperopt, LambertW
+    using Distances, LinearAlgebra, Statistics, LazySets, LambertW
 
-    include(srcdir("wRips.jl"))
-    import Main.wRips
+    import RobustTDA as rtda
 end
 
-plot_par = wRips.plot_params(alpha = 0.3)
+plot_par = plot_params(alpha = 0.3)
 theme(:dao)
 
 function M2(Xn; Q, p = 1, dim = 2)
-    dnq = wRips.momdist(Xn, floor(Int, Q))
-    w_momdist = wRips.fit(Xn, dnq)
-    D = wRips.wrips(Xn, w = w_momdist, p = p)
+    dnq = rtda.momdist(Xn, floor(Int, Q))
+    w_momdist = rtda.fit(Xn, dnq)
+    D = rtda.wrips(Xn, w = w_momdist, p = p)
     pers = (dim == 1 ? D[dim][1:end-1] : D[dim]) .|> persistence
     return filter( x -> x >= mean(x), pers ) |> mean
 end
 
 function M1(Xn; Q, p = 1, dim = 2)
-    D1 = @pipe wRips.momdist(Xn, floor(Int, Q)) |> wRips.fit(Xn, _) |> wRips.wrips(Xn, w = _, p = p)
-    D2 = @pipe wRips.momdist(Xn, floor(Int, Q)) |> wRips.fit(Xn, _) |> wRips.wrips(Xn, w = _, p = p)
+    D1 = @pipe rtda.momdist(Xn, floor(Int, Q)) |> rtda.fit(Xn, _) |> rtda.wrips(Xn, w = _, p = p)
+    D2 = @pipe rtda.momdist(Xn, floor(Int, Q)) |> rtda.fit(Xn, _) |> rtda.wrips(Xn, w = _, p = p)
     return Bottleneck()(D1, D2)
 end
 
 # function M3(Xn; Q, p = 1, dim = 2)
-#     dnq = wRips.momdist(Xn, floor(Int, Q))
-#     w_momdist = wRips.fit(Xn, dnq)
-#     D = wRips.wrips(Xn, w = w_momdist, p = p)
+#     dnq = rtda.momdist(Xn, floor(Int, Q))
+#     w_momdist = rtda.fit(Xn, dnq)
+#     D = rtda.wrips(Xn, w = w_momdist, p = p)
 #     return (dim == 1 ? D[dim][1:end-1] : D[dim]) .|> persistence |> std
 # end
 
 # function M4(Xn; Q, p = 1, dim = 2)
-#     dnq = wRips.momdist(Xn, floor(Int, Q))
-#     w_momdist = wRips.fit(Xn, dnq)
-#     D = wRips.wrips(Xn, w = w_momdist, p = p)
+#     dnq = rtda.momdist(Xn, floor(Int, Q))
+#     w_momdist = rtda.fit(Xn, dnq)
+#     D = rtda.wrips(Xn, w = w_momdist, p = p)
 #     pers = (dim == 1 ? D[dim][1:end-1] : D[dim]) .|> persistence
 #     return filter(x -> x ≥ median(pers), pers) |> sum
 # end
@@ -53,15 +53,15 @@ function one_iter(; M, epochs = 10)
 
         l = 1.5
         win = (-l, l, -l, l)
-        noise = wRips.randMClust(m..., window = win, λ1 = 2, λ2 = 10, r = 0.05)
-        # noise = wRips.randUnif(m..., a = -1, b = 1)
-        signal = 2.5 .* wRips.randCircle(n, sigma = 0.05)
+        noise = rtda.randMClust(m..., window = win, λ1 = 2, λ2 = 10, r = 0.05)
+        # noise = rtda.randUnif(m..., a = -1, b = 1)
+        signal = 2.5 .* rtda.randCircle(n, sigma = 0.05)
 
 
         X = [signal; noise]
-        Xn_signal = wRips._ArrayOfTuples_to_ArrayOfVectors(signal)
+        Xn_signal = rtda._ArrayOfTuples_to_ArrayOfVectors(signal)
 
-        Xn = wRips._ArrayOfTuples_to_ArrayOfVectors(X)
+        Xn = rtda._ArrayOfTuples_to_ArrayOfVectors(X)
     end
 
     begin
@@ -93,7 +93,7 @@ function lepski(; Xn, mmin, mmax, pi = 1.1, a, b, p = 1, δ = 0.5)
     M = [round(Int, mmin * pi^j) for j in 1:1:floor(Int, log(pi, mmax / mmin))] |> unique
     Q = [2 * m + 1 for m in M]
     J = length(M)
-    D = @pipe Q .|> wRips.momdist(Xn, _) .|> wRips.fit(Xn, _) .|> wRips.wrips(Xn, w = _, p = 1)
+    D = @pipe Q .|> rtda.momdist(Xn, _) .|> rtda.fit(Xn, _) .|> rtda.wrips(Xn, w = _, p = 1)
 
     jhat = J
 
@@ -102,9 +102,9 @@ function lepski(; Xn, mmin, mmax, pi = 1.1, a, b, p = 1, δ = 0.5)
 
     for j in 1:(J-1)
         flag = false
-        # Dj = @pipe Q[j] |> wRips.momdist(Xn, _) |> wRips.fit(Xn, _) |> wRips.wrips(Xn, w = _, p = 1)
+        # Dj = @pipe Q[j] |> rtda.momdist(Xn, _) |> rtda.fit(Xn, _) |> rtda.wrips(Xn, w = _, p = 1)
         for i in (j+1):J
-            # Di = @pipe Q[i] |> wRips.momdist(Xn, _) |> wRips.fit(Xn, _) |> wRips.wrips(Xn, w = _, p = 1)
+            # Di = @pipe Q[i] |> rtda.momdist(Xn, _) |> rtda.fit(Xn, _) |> rtda.wrips(Xn, w = _, p = 1)
             # flag = Bottleneck()(Di, Dj) > 2 * h(n, M[i])
             flag = Bottleneck()(D[i], D[j]) ≤ 2 * h(n, M[i], δ)
             next!(prog; showvalues = generate_showvalues(j))
@@ -126,12 +126,12 @@ function one_lepski_iter(; mmin, mmax, pi = 1.1, a, b, p = 1, δ = 1e-9)
 
         l = 1.5
         win = (-l, l, -l, l)
-        noise = wRips.randMClust(m, window = win, λ1 = 2, λ2 = 10, r = 0.05)
-        # noise = wRips.randUnif(m..., a = -1, b = 1)
-        signal = 2.5 .* wRips.randCircle(n, sigma = 0.05)
+        noise = rtda.randMClust(m, window = win, λ1 = 2, λ2 = 10, r = 0.05)
+        # noise = rtda.randUnif(m..., a = -1, b = 1)
+        signal = 2.5 .* rtda.randCircle(n, sigma = 0.05)
 
         X = [signal; noise]
-        Xn = wRips._ArrayOfTuples_to_ArrayOfVectors(X)
+        Xn = rtda._ArrayOfTuples_to_ArrayOfVectors(X)
     end
 
     # println(m)
@@ -154,7 +154,7 @@ end
 Lep = Any[]
 
 Random.seed!(2022)
-for i in 1:20
+for i in 1:3
     println("\n i=$i")
     Lep = vcat(Lep, one_lepski_iter(a = a, b = b, mmin = mmin, mmax = mmax, pi = pi, p = 1, δ = δ))
 end
