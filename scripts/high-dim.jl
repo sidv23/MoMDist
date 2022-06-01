@@ -1,6 +1,10 @@
 using DrWatson
 @quickactivate "wrips-code"
 
+function pltD(D; s=(300, 300), rotate=true)
+    return plot(D, persistence=rotate, lim=(-0.01, 2), markershape=:o, markerstrokecolor=:black, markersize=5, markeralpha=1, size=s, title="")
+end
+
 begin
     using Ripserer, PersistenceDiagrams, PersistenceDiagramsBase
     using Random, Distributions, Parameters, Pipe, ProgressMeter, Plots, StatsPlots, JLD2
@@ -55,8 +59,8 @@ end
 
 
 begin
-    m̂ = m
-    p = 1
+    # m̂ = m
+    p = Inf
     # Q = 2 * m + 1
     Q = 2 * m̂ + 1
     dnq = wRips.momdist(Xn, floor(Int, Q))
@@ -64,7 +68,7 @@ begin
     D = wRips.wrips(Xn, w = w_momdist, p = p, dim_max=1)
     # plot(D[2])
 
-    dnm = wRips.dtm(Xn, m̂ / length(Xn))
+    dnm = wRips.dtm(Xn, Q / length(Xn))
     w_dtm = wRips.fit(Xn, dnm)
     Dnm = wRips.wrips(Xn, w = w_dtm, p = p, dim_max=1)
     # plot(Dnm[2])
@@ -73,12 +77,10 @@ begin
 
 
     plot(
-        plot(D[2], persistence=true, lim=(0,2), ms=:o), 
-        plot(Dnm[2], persistence=true, lim=(0,2), ms=:o)
+        pltD(D[2]),
+        pltD(Dnm[2]),
+        size=(800,400)
     )
 end
 
-
-function pltD(D; s=(300,300), rotate=true)
-    return plot(D, persistence=rotate, lim=(-0.01, 2), markershape=:o, markerstrokecolor=:black, markersize=5, markeralpha=1, size=s, title="")
-end
+plot(pltD(D[2]),pltD(Dnm[2]),size=(800, 400))
