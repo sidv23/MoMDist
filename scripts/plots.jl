@@ -1,5 +1,5 @@
 using DrWatson
-@quickactivate "wrips-code"
+@quickactivate
 
 begin
     using Ripserer, PersistenceDiagrams, PersistenceDiagramsBase
@@ -7,13 +7,12 @@ begin
     using Random, Distributions, Parameters, Pipe, ProgressMeter, Plots, StatsPlots, JLD2
     using Distances, LinearAlgebra, Statistics, LazySets, Roots, Hyperopt
 
-    include(srcdir("wRips.jl"))
-    import Main.wRips
+    import RobustTDA as rtda
 end
 
-res = JLD2.load("./experiments/data/res.jld2")["res"]
+res = JLD2.load(datadir("res.jld2"))["res"]
 
-M = JLD2.load("./experiments/data/M4.jld2")["M"][:, [2, 4]]
+M = JLD2.load(datadir("calibration/M4.jld2"))["M"][:, [2, 4]]
 Lep = JLD2.load("./experiments/Lep.jld2")["Lep"]
 theme(:dao)
 plt = boxplot(Lep, label = "Lepski")
@@ -24,23 +23,23 @@ plt = plot(plt, legend = nothing, size = (300, 300), ylabel = "", xticks = (1:3,
 savefig(plt, "./experiments/plots/p1-3.pdf")
 
 begin
-    Random.seed!(2021)
+    Random.seed!(2022)
 
     n = 500
     m = rand([50:1:150]..., 1)
 
     l = 1.5
     win = (-l, l, -l, l)
-    noise = wRips.randMClust(m..., window = win, λ1 = 2, λ2 = 10, r = 0.05)
-    # noise = wRips.randUnif(m..., a = -1, b = 1)
-    signal = 2.5 .* wRips.randCircle(n, sigma = 0.05)
+    noise = rtda.randMClust(m..., window = win, λ1 = 2, λ2 = 10, r = 0.05)
+    # noise = rtda.randUnif(m..., a = -1, b = 1)
+    signal = 2.5 .* rtda.randCircle(n, sigma = 0.05)
 
 
     X = [signal; noise]
-    Xn_signal = wRips._ArrayOfTuples_to_ArrayOfVectors(signal)
+    Xn_signal = rtda._ArrayOfTuples_to_ArrayOfVectors(signal)
 
-    Xn = wRips._ArrayOfTuples_to_ArrayOfVectors(X)
-    Q_seq = range(50, 300, step = 10)
+    Xn = rtda._ArrayOfTuples_to_ArrayOfVectors(X)
+    Q_seq = range(10, 300, step = 10)
     nQ = length(Q_seq)
     num_iter = 10
 end
@@ -52,15 +51,17 @@ begin
 
     for i in 1:length(Q_seq)
         for j = 1:num_iter
-            dnq = wRips.momdist(Xn, Q_seq[i])
-            w_momdist = wRips.fit(Xn, dnq)
-            D_momdist = wRips.wrips(Xn, w = w_momdist, p = 1)
+            dnq = rtda.momdist(Xn, Q_seq[i])
+            w_momdist = rtda.fit(Xn, dnq)
+            D_momdist = rtda.wrips(Xn, w = w_momdist, p = 1)
             S[i][j] = Dict("dgm" => D_momdist)
             next!(prog)
         end
     end
 
 end
+
+jldsave(datadir("S.jld2"); S)
 
 
 Q_seq = range(10, 250, step = 10)
@@ -89,4 +90,4 @@ for k in 1:nQ
     end
     res = vcat(res, @pipe Σ |> [mean(_), std(_)]')
 end
-# JLD2.save("./experiments/data/res.jld2"; res)
+# JLD2.save(datadir("calibration/res.jld2"); res)

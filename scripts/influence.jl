@@ -16,27 +16,27 @@ l = 2.5
 
 
 function one_simulation(; n=500, m, p, Q=100, K=10, l=0.1)
-    
+
     noise = rtda.randUnif(m, a=-l, b=l)
     signal = 2.0 * rtda.randCircle(n, sigma=0.1)
     X = [signal; noise]
     Xn_signal = rtda._ArrayOfTuples_to_ArrayOfVectors(signal)
     Xn = rtda._ArrayOfTuples_to_ArrayOfVectors(X)
-    
+
     dnm = rtda.dtm(Xn, K / length(Xn))
     dnq = rtda.momdist(Xn, Q)
-    
+
     w_momdist = rtda.fit(Xn, dnq)
     
     w_dtm = rtda.fit(Xn, dnm)
-    
+
     Dn = ripserer(Xn_signal)
     D = ripserer(Xn)
     D_dtm = rtda.wrips(Xn, w=w_dtm, p=p)
     D_momdist = rtda.wrips(Xn, w=w_momdist, p=p)
-    
+
     results = Dict()
-    
+
     push!(results, "bottleneck" => Bottleneck()(D, Dn))
     push!(results, "pers dtm" => D_dtm[2] .|> persistence |> maximum)
     push!(results, "birth dtm" => rtda.fit([[0, 0]], dnm))
@@ -67,20 +67,28 @@ end
 begin
     var1 = "bottleneck mom"
     var2 = "bottleneck dtm"
-    
+    var3 = "bottleneck"
+
     plt1 = plot(
-    m_seq,
-    [map(x -> x[var1], R[i]) |> mean for i = 1:length(m_seq)],
-    ribbon=[map(x -> x[var1], R[i]) |> std for i = 1:length(m_seq)],
-    label="mom", lw=2
+        m_seq,
+        [map(x -> x[var1], R[i]) |> mean for i = 1:length(m_seq)],
+        ribbon=[map(x -> x[var1], R[i]) |> std for i = 1:length(m_seq)],
+        label="mom", lw=2
     )
-    
+
     plt1 = plot(plt1,
-    m_seq,
-    [map(x -> x[var2], R[i]) |> mean for i = 1:length(m_seq)],
-    ribbon=[map(x -> x[var2], R[i]) |> std for i = 1:length(m_seq)],
-    label="dtm", lw=2,
-    legend=:bottomright
+        m_seq,
+        [map(x -> x[var2], R[i]) |> mean for i = 1:length(m_seq)],
+        ribbon=[map(x -> x[var2], R[i]) |> std for i = 1:length(m_seq)],
+        label="dtm", lw=2,
+        legend=:bottomright
+    )
+    plt1 = plot(plt1,
+        m_seq,
+        [map(x -> x[var3], R[i]) |> mean for i = 1:length(m_seq)],
+        ribbon=[map(x -> x[var3], R[i]) |> std for i = 1:length(m_seq)],
+        label="vanilla", lw=2,
+        legend=:bottomright
     )
     ylabel!("Bottleneck Influence")
     xlabel!(L"# of outliers ($m$)")
@@ -92,23 +100,23 @@ savefig(plotsdir("influence/influence-bottleneck.pdf"))
 
 
 begin
-    
+
     # Total Persistence
     var1 = "pers mom"
     var2 = "pers dtm"
-    
+
     plt1 = plot(
-    m_seq,
-    [map(x -> x[var1], R[i]) |> mean for i = 1:length(m_seq)],
-    ribbon=[map(x -> x[var1], R[i]) |> std for i = 1:length(m_seq)],
-    label="mom", lw=2
+        m_seq,
+        [map(x -> x[var1], R[i]) |> mean for i = 1:length(m_seq)],
+        ribbon=[map(x -> x[var1], R[i]) |> std for i = 1:length(m_seq)],
+        label="mom", lw=2
     )
-    
+
     plt1 = plot(plt1,
-    m_seq,
-    [map(x -> x[var2], R[i]) |> mean for i = 1:length(m_seq)],
-    ribbon=[map(x -> x[var2], R[i]) |> std for i = 1:length(m_seq)],
-    label="dtm", lw=2
+        m_seq,
+        [map(x -> x[var2], R[i]) |> mean for i = 1:length(m_seq)],
+        ribbon=[map(x -> x[var2], R[i]) |> std for i = 1:length(m_seq)],
+        label="dtm", lw=2
     )
     # title!(L"Influence : Total Persistence in $H_1$")
     ylabel!("max-persistence for H₁")
@@ -124,21 +132,21 @@ savefig(plotsdir("influence/influence-pers.pdf"))
 begin
     var1 = "birth mom"
     var2 = "birth dtm"
-    
+
     plt1 = plot(
-    m_seq,
-    [map(x -> x[var1], R[i]) |> mean for i = 1:length(m_seq)],
-    ribbon=[map(x -> x[var1], R[i]) |> std for i = 1:length(m_seq)],
-    label="mom", lw=3
+        m_seq,
+        [map(x -> x[var1], R[i]) |> mean for i = 1:length(m_seq)],
+        ribbon=[map(x -> x[var1], R[i]) |> std for i = 1:length(m_seq)],
+        label="mom", lw=3
     )
-    
+
     plt1 = plot(plt1,
-    m_seq,
-    [map(x -> x[var2], R[i]) |> mean for i = 1:length(m_seq)],
-    ribbon=[map(x -> x[var2], R[i]) |> std for i = 1:length(m_seq)],
-    label="dtm", lw=3
+        m_seq,
+        [map(x -> x[var2], R[i]) |> mean for i = 1:length(m_seq)],
+        ribbon=[map(x -> x[var2], R[i]) |> std for i = 1:length(m_seq)],
+        label="dtm", lw=3
     )
-    
+
     ylabel!("b({x₀}): birth time of x₀")
     xlabel!(L"# of outliers ($m$)")
     plot(plt1, size=(400, 300))

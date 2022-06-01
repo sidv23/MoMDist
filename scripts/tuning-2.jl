@@ -52,7 +52,7 @@ begin
     l = 1
     win = (-l, l, -l, l)
     # R = product_distribution(repeat([Uniform(-1, 1)], dim))
-    R = product_distribution(repeat([Uniform(-1, 1)], dim))
+    R = product_distribution(repeat([Uniform(-.23, .23)], dim))
     noise = [rand(R) for _ in 1:m]
     # noise = rtda.randMClust(m..., window=win, λ1=10, λ2=20, r=0.05)
     # noise = [Tuple(R * [x...; zeros(dim - 2)]) for x in noise]
@@ -69,7 +69,7 @@ end
     mmin=100,
     mmax=500,
     pi=1.15,
-    δ=0.02
+    δ=0.01
 )
 
 # Calibration
@@ -97,16 +97,41 @@ begin
     D2 = rtda.wrips(Xn, w=w_dtm, p=1)
 end
 
+plot(plot(D1[2], ylim=(-0.5, 1.5), persistence=true), plot(D2[2], ylim=(-0.5, 1.5), persistence=true))
+
 savefig(
-    plot(D1[2], markeralpha=1, title="MoM Dist", size=(300, 330)),
-    plotsdir("highdim/interlocked-momdist.svg")
+    plot(D1[2], markeralpha=1, title="", size=(300, 330)),
+    plotsdir("highdim/interlocked-momdist2.pdf")
 )
 
 savefig(
     plot(D2[2], markeralpha=1, title="DTM", size=(300, 330)),
-    plotsdir("highdim/interlocked-dtm.svg")
+    plotsdir("highdim/interlocked-dtm2.pdf")
 )
 
-theme(:default)
+# theme(:default)
 plt = scatter(Tuple.(interlockedCircles(n)), ratio=1, label=nothing, size=(300,300), camera=(5,50))
 savefig(plt, plotsdir("highdim/interlocked-scatter.pdf"))
+
+
+
+# random dim
+Random.seed!(2022)
+dims = convert.(Int, rand(1:100, 3))
+plt = scatter(
+    [Tuple(x[dims]) for x in X],
+    ratio=1, label=nothing, size=(300, 300), camera=(10, 30)
+)
+savefig(plt, plotsdir("highdim/interlocked-noisy.pdf"))
+
+
+# pca
+begin
+    Xn_mat = hcat(Xn...)'
+    lam, U = eigen(Xn_mat'Xn_mat)
+    Xn_pca = ( Xn_mat * U )[:, 1:3]
+    X_pca = [tuple(x...) for x in eachrow(Xn_pca)]
+    plt = scatter(X_pca, ratio=1, label=nothing, size=(300,300), camera=(5,50), c=:dodgerblue, markeralpha=0.1)
+end
+
+savefig(plt, plotsdir("highdim/interlocked-pca.pdf"))

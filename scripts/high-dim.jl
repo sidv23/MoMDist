@@ -6,8 +6,7 @@ begin
     using Random, Distributions, Parameters, Pipe, ProgressMeter, Plots, StatsPlots, JLD2
     using Distances, LinearAlgebra, Statistics, LazySets, Roots, Hyperopt
     using ProgressMeter
-    include(srcdir("wRips.jl"))
-    import Main.wRips
+    import RobustTDA as wRips
 end
 
 
@@ -38,8 +37,8 @@ function Rot(X, d)
 end
 
 begin
-    d = 5
-    m = 50
+    d = 100
+    m = 65
     Random.seed!(2022)
     X1 = @pipe matern_circle(500,m, r=1.5,l=0.5, c=(2.0,-2.0))
     X2 = @pipe matern_circle(500,m, r=1.5,l=0.5, c=(-2.0,2.0))
@@ -47,22 +46,39 @@ begin
     Xn = X |> wRips._ArrayOfTuples_to_ArrayOfVectors
 end;
 
-Lep = wRips.lepski_params(a=0.01, b=1, mmin=20, mmax=200, pi=1.1, δ=0.05)
-m̂ = wRips.lepski(Xn=Xn, params=Lep)
+
+begin
+    Random.seed!(2022)
+    Lep = wRips.lepski_params(a=0.05, b=1, mmin=20, mmax=200, pi=1.1, δ=0.05)
+    m̂ = wRips.lepski(Xn=Xn, params=Lep)
+end
 
 
 begin
-    p = 2
-    Q = 2 * m + 1
+    m̂ = m
+    p = 1
+    # Q = 2 * m + 1
+    Q = 2 * m̂ + 1
     dnq = wRips.momdist(Xn, floor(Int, Q))
     w_momdist = wRips.fit(Xn, dnq)
     D = wRips.wrips(Xn, w = w_momdist, p = p, dim_max=1)
     # plot(D[2])
 
-    dnm = wRips.dtm(Xn, 0.05)
+    dnm = wRips.dtm(Xn, m̂ / length(Xn))
     w_dtm = wRips.fit(Xn, dnm)
     Dnm = wRips.wrips(Xn, w = w_dtm, p = p, dim_max=1)
     # plot(Dnm[2])
 
-    plot( plot(D[2]), plot(Dnm[2]) )
+    # plot(plot(D[2], lim=(0.5, 2)), plot(Dnm[2], lim=(0.5, 2)))
+
+
+    plot(
+        plot(D[2], persistence=true, lim=(0,2), ms=:o), 
+        plot(Dnm[2], persistence=true, lim=(0,2), ms=:o)
+    )
+end
+
+
+function pltD(D; s=(300,300), rotate=true)
+    return plot(D, persistence=rotate, lim=(-0.01, 2), markershape=:o, markerstrokecolor=:black, markersize=5, markeralpha=1, size=s, title="")
 end

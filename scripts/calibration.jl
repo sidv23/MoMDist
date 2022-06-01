@@ -1,5 +1,5 @@
 using DrWatson
-@quickactivate projectdir()
+@quickactivate "momdist"
 
 
 begin
@@ -74,7 +74,7 @@ function one_iter(; M, epochs = 10)
         Q = 10:1:300,
         b = [true, false]
         # println(i, "\t $Q", "\t     ")
-        M(Xn, Q = Q, p = 1, dim = 2)
+        M(Xn, Q = Q, p = 1)
     end
 
     return (round(Int, 0.5 * (H.minimizer[1]-1)) - m) / m
@@ -229,8 +229,11 @@ savefig(plt, "./experiments/plots/Method2.pdf")
 # @pipe noise |> scatter!(_, ratio = 1, label = "Outliers", legend = :bottomright)
 # savefig("./plots/experiments/calibration/scatter.pdf")
 
-# y = [[x["dgm"] |> method1 for x in S_row] |> mean for S_row in S]
-# Δy = [[x["dgm"] |> method1 for x in S_row] |> std for S_row in S]
-# plot(Q_seq, y, ribbon = Δy, label = "Total Persistence", legend = :bottomright)
-# plot!(repeat(2 .* m .+ 1, 100), LinRange(1, 2, 100), label = "2m+1")
+y = [[x["dgm"] |> method1 for x in S_row] |> mean for S_row in S]
+Δy = [[x["dgm"] |> method1 for x in S_row] |> std for S_row in S]
+plot(Q_seq, y, ribbon = Δy, label = "Total Persistence", legend = :bottomright)
+plot!(repeat(2 .* m .+ 1, 100), LinRange(1, 2, 100), label = "2m+1")
 # savefig("./plots/experiments/calibration/total-persistence.pdf")
+
+
+pwd()
