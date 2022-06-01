@@ -1,8 +1,8 @@
 using DrWatson
 @quickactivate "wrips-code"
 
-function pltD(D; s=(300, 300), rotate=true)
-    return plot(D, persistence=rotate, lim=(-0.01, 2), markershape=:o, markerstrokecolor=:black, markersize=5, markeralpha=1, size=s, title="")
+function pltD(D; s=(300, 300), rotate=true, args...)
+    return plot(D, persistence=rotate, lim=s, markershape=:o, markerstrokecolor=:black, markersize=5, markeralpha=1, size=s, title="", args...)
 end
 
 begin
@@ -17,7 +17,7 @@ end
 function matern_circle(n, m; r=1.0, l=1.0, c=(0.0, 0.0))
     win = (-l, l, -l, l)
     noise = wRips.randMClust(m..., window=win, λ1=2, λ2=10, r=0.05)
-    signal = @pipe (r .* wRips.randCircle(n, sigma=0.0)) 
+    signal = @pipe (r .* wRips.randCircle(n, sigma=0.0))
     return @pipe [signal; noise] .|> _ .+ c
 end
 
@@ -36,7 +36,7 @@ end
 
 function Rot(X, d)
     Q = rand_SO(d)
-    X = [tuple( (Q * [x..., zeros(d-2)...])...) for x in X]
+    X = [tuple((Q * [x..., zeros(d - 2)...])...) for x in X]
     return X
 end
 
@@ -44,8 +44,8 @@ begin
     d = 100
     m = 65
     Random.seed!(2022)
-    X1 = @pipe matern_circle(500,m, r=1.5,l=0.5, c=(2.0,-2.0))
-    X2 = @pipe matern_circle(500,m, r=1.5,l=0.5, c=(-2.0,2.0))
+    X1 = @pipe matern_circle(500, m, r=1.5, l=0.5, c=(2.0, -2.0))
+    X2 = @pipe matern_circle(500, m, r=1.5, l=0.5, c=(-2.0, 2.0))
     X = [Rot(X1, d); Rot(X2, d)]
     Xn = X |> wRips._ArrayOfTuples_to_ArrayOfVectors
 end;
@@ -59,28 +59,24 @@ end
 
 
 begin
-    # m̂ = m
-    p = Inf
-    # Q = 2 * m + 1
+    p = 2
     Q = 2 * m̂ + 1
     dnq = wRips.momdist(Xn, floor(Int, Q))
     w_momdist = wRips.fit(Xn, dnq)
-    D = wRips.wrips(Xn, w = w_momdist, p = p, dim_max=1)
-    # plot(D[2])
+    D = wRips.wrips(Xn, w=w_momdist, p=p, dim_max=1)
 
     dnm = wRips.dtm(Xn, Q / length(Xn))
     w_dtm = wRips.fit(Xn, dnm)
-    Dnm = wRips.wrips(Xn, w = w_dtm, p = p, dim_max=1)
-    # plot(Dnm[2])
-
-    # plot(plot(D[2], lim=(0.5, 2)), plot(Dnm[2], lim=(0.5, 2)))
-
+    Dnm = wRips.wrips(Xn, w=w_dtm, p=p, dim_max=1)
 
     plot(
-        pltD(D[2]),
-        pltD(Dnm[2]),
-        size=(800,400)
+        pltD(D[2], s=(0,2.5)),
+        pltD(Dnm[2], s=(0,2.5)),
+        size=(800, 400)
     )
 end
 
-plot(pltD(D[2]),pltD(Dnm[2]),size=(800, 400))
+pltD(D[2]) 
+savefig(plotsdir("highdim/DgmQ.pdf"))
+pltD(Dnm[2])
+savefig(plotsdir("highdim/Dgmnm.pdf"));

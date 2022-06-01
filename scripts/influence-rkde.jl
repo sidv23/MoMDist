@@ -52,7 +52,7 @@ l = 2.5
 ϵ = 0.5
 
 
-function one_simulation(; n=500, m, p, Q=100, K=nothing, s=nothing, l=0.1)
+function one_simulation(; n=500, m, p, Q=100, K=nothing, s=nothing, l=0.001)
 
     noise = rtda.randUnif(m, a=-l, b=l)
     signal = 2.0 * rtda.randCircle(n, sigma=0.1)
@@ -125,15 +125,15 @@ end
 
 
 m_seq = [0:5:95; 100:25:150] |> collect
-N = 10
+N = 5
 R = [[Dict() for _ = 1:N] for _ in m_seq]
 
 for i in 1:length(m_seq), j in 1:N
-    R[i][j] = one_simulation(m=m_seq[i], p=1, K=50)
+    R[i][j] = one_simulation(m=m_seq[i], p=1, K=100)
     println([i, j])
 end
 
-jldsave(datadir("R-rkde-k5.jld2"); R)
+jldsave(datadir("R-rkde-k100-final.jld2"); R)
 # R = load(datadir("R-rkde.jld2"), "R");
 
 
@@ -263,14 +263,14 @@ begin
         m_seq,
         [map(x -> x[var1], R[i]) |> mean for i = 1:length(m_seq)],
         ribbon=[map(x -> x[var1], R[i]) |> mad for i = 1:length(m_seq)],
-        label="mom", lw=3, markershape=:o
+        label="mom", lw=3
     )
 
     plt1 = plot(plt1,
         m_seq,
         [map(x -> x[var2], R[i]) |> mean for i = 1:length(m_seq)],
         ribbon=[map(x -> x[var2], R[i]) |> mad for i = 1:length(m_seq)],
-        label="dtm", lw=3, markershape=:o
+        label="dtm", lw=3
     )
 
     var3 = "birth rkde"
@@ -278,7 +278,7 @@ begin
         m_seq,
         [map(x -> x[var3], R[i]) |> mean for i = 1:length(m_seq)],
         ribbon=[map(x -> x[var3], R[i]) |> mad for i = 1:length(m_seq)],
-        label="rkde", lw=2, markershape=:o,
+        label="rkde", lw=2,
         legend=:topright
     )
 
