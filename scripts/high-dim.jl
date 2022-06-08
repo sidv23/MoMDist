@@ -1,82 +1,109 @@
 using DrWatson
-@quickactivate "wrips-code"
+@quickactivate "momdist"
 
-function pltD(D; s=(300, 300), rotate=true, args...)
-    return plot(D, persistence=rotate, lim=s, markershape=:o, markerstrokecolor=:black, markersize=5, markeralpha=1, size=s, title="", args...)
-end
+using Ripserer, PersistenceDiagrams, PersistenceDiagramsBase
+using Random, Distributions, Parameters, Pipe, ProgressMeter, Plots, StatsPlots, JLD2
+using Distances, LinearAlgebra, Statistics, LazySets, Roots, LambertW, LaTeXStrings
 
-begin
-    using Ripserer, PersistenceDiagrams, PersistenceDiagramsBase
-    using Random, Distributions, Parameters, Pipe, ProgressMeter, Plots, StatsPlots, JLD2
-    using Distances, LinearAlgebra, Statistics, LazySets, Roots, Hyperopt
-    using ProgressMeter
-    import RobustTDA as wRips
-end
+import RobustTDA as rtda
 
 
-function matern_circle(n, m; r=1.0, l=1.0, c=(0.0, 0.0))
-    win = (-l, l, -l, l)
-    noise = wRips.randMClust(m..., window=win, λ1=2, λ2=10, r=0.05)
-    signal = @pipe (r .* wRips.randCircle(n, sigma=0.0))
-    return @pipe [signal; noise] .|> _ .+ c
-end
+# Helper Functions
 
-function rand_SO(d)
-    A = rand(d, d)
-    Q, R = qr(A)
-    dt = det(Q)
-    # while dt <= 0.0
-    #     A = rand(d, d)
-    #     Q, R = qr(A)
-    #     dt = det(Q)
-    # end
-    return Q * Diagonal(sign.(diag(R)))
+function randomRotation(; d=3)
+    A = randn(d, d)
+    M = (A + A') ./ √2
+    _, U = eigen(M)
+    return U
 end
 
 
-function Rot(X, d)
-    Q = rand_SO(d)
-    X = [tuple((Q * [x..., zeros(d - 2)...])...) for x in X]
-    return X
+function interlockedCircles(n; args...)
+    R = [1 0 0; 0 0 -1; 0 1 0]
+    X1 = [[x...; 0] for x in rtda.randCircle(n)]
+    X2 = [R * ([x...; 0] .+ [1.0, 0.0, 0.0]) for x in rtda.randCircle(n)]
+    return [X1; X2]
 end
 
-begin
-    d = 100
-    m = 65
-    Random.seed!(2022)
-    X1 = @pipe matern_circle(500, m, r=1.5, l=0.5, c=(2.0, -2.0))
-    X2 = @pipe matern_circle(500, m, r=1.5, l=0.5, c=(-2.0, 2.0))
-    X = [Rot(X1, d); Rot(X2, d)]
-    Xn = X |> wRips._ArrayOfTuples_to_ArrayOfVectors
-end;
 
+
+# Generate points
 
 begin
     Random.seed!(2022)
-    Lep = wRips.lepski_params(a=0.05, b=1, mmin=20, mmax=200, pi=1.1, δ=0.05)
-    m̂ = wRips.lepski(Xn=Xn, params=Lep)
+    m = 150
+    n = 7 * m
+    dim = 100
+    R = randomRotation(d=dim)
+
+    signal = interlockedCircles(n)
+    signal = [Tuple(R * [x...; zeros(dim - 3)]) for x in signal]
+
+    l = 0.23
+    R = product_distribution(repeat([Uniform(-l, l)], dim))
+    noise = [rand(R) for _ in 1:m]
+
+    X = [signal; noise] |> rtda._ArrayOfVectors_to_ArrayOfTuples
+    Xn = [[x...] for x in X]
+end
+
+# Example plot
+begin
+    dims = rand(1:1:100, 3)
+    @pipe [x[dims] for x in X] |> scatter(_, ratio=1, label="Coordinates for dims: $dims")
 end
 
 
+# Lepski's method (coarser)
 begin
-    p = 2
-    Q = 2 * m̂ + 1
-    dnq = wRips.momdist(Xn, floor(Int, Q))
-    w_momdist = wRips.fit(Xn, dnq)
-    D = wRips.wrips(Xn, w=w_momdist, p=p, dim_max=1)
-
-    dnm = wRips.dtm(Xn, Q / length(Xn))
-    w_dtm = wRips.fit(Xn, dnm)
-    Dnm = wRips.wrips(Xn, w=w_dtm, p=p, dim_max=1)
-
-    plot(
-        pltD(D[2], s=(0,2.5)),
-        pltD(Dnm[2], s=(0,2.5)),
-        size=(800, 400)
+    # Initialize Lepski Parameters
+    θ = rtda.lepski_params(
+        a=0.1,
+        b=1,
+        mmin=100,
+        mmax=500,
+        pi=1.15,
+        δ=0.01
     )
+
+    M = rtda.lepski(Xn=Xn, params=θ)
 end
 
-pltD(D[2]) 
-savefig(plotsdir("highdim/DgmQ.pdf"))
-pltD(Dnm[2])
-savefig(plotsdir("highdim/Dgmnm.pdf"));
+
+# Lepski's method (finer)
+begin
+    # Change pi
+    θ = rtda.lepski_params(
+        a=0.2,
+        b=1,
+        mmin=round(Int, 0.8 * M),
+        mmax=round(Int, 1.2 * M),
+        pi=1.07,
+        δ=0.01
+    )
+
+    M = rtda.lepski(Xn=Xn, params=θ)
+end
+
+
+# Compute MoM-Dist and DTM
+begin
+    Q = 2 * M + 1
+
+    Random.seed!(2022)
+    dnq = rtda.momdist(Xn, floor(Int, Q))
+    dnm = rtda.dtm(Xn, Q / n)
+
+    w_momdist = rtda.fit(Xn, dnq)
+    w_dtm = rtda.fit(Xn, dnm)
+
+    D1 = rtda.wrips(Xn, w=w_momdist, p=1)
+    D2 = rtda.wrips(Xn, w=w_dtm, p=1)
+end
+
+
+# Results
+plot(
+    plot(D1[2], ylim=(-0.5, 1.5), persistence=true),
+    plot(D2[2], ylim=(-0.5, 1.5), persistence=true)
+)

@@ -1,0 +1,56 @@
+{
+    "jupyter.kernels.filter": [
+        {
+            "path": "/storage/home/s/suv87/work/miniconda3/bin/python",
+            "type": "pythonEnvironment"
+        },
+        {
+            "path": "/storage/work/s/suv87/conda_local/envs/dev/bin/python",
+            "type": "pythonEnvironment"
+        },
+        {
+            "path": "/storage/work/s/suv87/conda_local/envs/heroku-test/bin/python",
+            "type": "pythonEnvironment"
+        },
+        {
+            "path": "/storage/work/s/suv87/python/heroku-test/herokutestenv/bin/python",
+            "type": "pythonEnvironment"
+        },
+        {
+            "path": "/storage/home/suv87/.local/share/jupyter/kernels/julia-1.5/kernel.json",
+            "type": "jupyterKernelspec"
+        },
+        {
+            "path": "/storage/home/suv87/.local/share/jupyter/kernels/julia-1.6/kernel.json",
+            "type": "jupyterKernelspec"
+        },
+        {
+            "path": "/storage/home/suv87/work/miniconda3/bin/python",
+            "type": "pythonEnvironment"
+        },
+        {
+            "path": "/storage/work/s/suv87/conda_local/envs/myconda-nbx/bin/python",
+            "type": "pythonEnvironment"
+        },
+        {
+            "path": "/bin/python",
+            "type": "pythonEnvironment"
+        },
+        {
+            "path": "/usr/bin/python",
+            "type": "pythonEnvironment"
+        },
+        {
+            "path": "/usr/bin/python3",
+            "type": "pythonEnvironment"
+        },
+        {
+            "path": "/bin/python3",
+            "type": "pythonEnvironment"
+        },
+        {
+            "path": "/storage/home/s/suv87/work/gurobi/gurobi912/linux64/bin/python3.7",
+            "type": "pythonEnvironment"
+        }
+    ]
+}
