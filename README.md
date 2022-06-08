@@ -17,7 +17,7 @@ From the Julia REPL, you can enter the package manager by typing `]`, and activa
 ```julia
 julia> ]
 pkg> activate .
-pkg> instantiate .
+pkg> instantiate
 ```
 
 Alternatively, if you use the `DrWatson.jl` package, then you can quickly activate the project environment as follows.
@@ -44,7 +44,7 @@ The [notebooks](./notebooks/) directory contains the Jupyter notebooks for the e
 - [x] [`influence.ipynb`](./notebooks/influence.ipynb): Influence analysis for **MoMDist**, DTM and RKDE-Distance in the adversarial setting (See §4.5). 
 
 
-The [scripts](./scripts/) directory contains the `.jl` source-code for the notebooks. All functions prefixed with `rtda.` are imported from the [`RobustTDA.jl` package](./src/rdpg.jl).
+The [scripts](./scripts/) directory contains the `.jl` source-code for the notebooks. All functions prefixed with `rtda.` are imported from the [`RobustTDA.jl` package](https://github.com/sidv23/RobustTDA.jl).
 
 
 ## Troubleshooting
