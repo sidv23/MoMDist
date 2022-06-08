@@ -1,6 +1,6 @@
 # MoM Dist
 
-This repository contains the code accompanying the paper ![`Robust Topological Inference in the Presence of Outliers`](https://arxiv.org/abs/2206.01795).  The code uses the ![`RobustTDA.jl`]() package for computing **MoMDist**-weighted filtrations.
+This repository contains the code accompanying the paper ![`Robust Topological Inference in the Presence of Outliers`](https://arxiv.org/abs/2206.01795).  The code uses the ![`RobustTDA.jl`](https://github.com/sidv23/RobustTDA.jl/) package for computing **MoMDist**-weighted filtrations.
 
 
 # Getting Started
@@ -30,18 +30,18 @@ julia> @quickactivate "momdist"
 
 The [notebooks](./notebooks/) directory contains the Jupyter notebooks for the experiments and simulations. The directory contains the following files:
 
-- [x] [`calibration.ipynb`](./notebooks/clustering.ipynb): Experiment illustrating the auto-tuning procedure using Lepski's method and the resampling based heuristic procedure (See §4.1).
+- [x] [`calibration.ipynb`](./notebooks/calibration.ipynb): Experiment illustrating the auto-tuning procedure using Lepski's method and the resampling based heuristic procedure (See §4.1).
 
-- [x] [`sublevel.ipynb`](./notebooks/example.ipynb): Comparison of sublevel filtration to the weighted-offset filtration for MoMDist (See §4.2). 
-
-
-- [x] [`high-dim.ipynb`](./notebooks/sbm.ipynb): High dimensional topological inference in the presence of outliers with **MoMDist** vis-à-vis DTM (See §4.3). 
+- [x] [`sublevel.ipynb`](./notebooks/sublevel.ipynb): Comparison of sublevel filtration to the weighted-offset filtration for MoMDist (See §4.2). 
 
 
-- [x] [`adversarial.ipynb`](./notebooks/simulation.ipynb): Illustration of recovering the true signal under adversarial contamination (See §4.4).
+- [x] [`high-dim.ipynb`](./notebooks/high-dim.ipynb): High dimensional topological inference in the presence of outliers with **MoMDist** vis-à-vis DTM (See §4.3). 
 
 
-- [x] [`comparison.ipynb`](./notebooks/comparison.ipynb): Simulations comparing edgeFlip with LaplaceFlip. 
+- [x] [`adversarial.ipynb`](./notebooks/adversarial.ipynb): Illustration of recovering the true signal under adversarial contamination (See §4.4).
+
+
+- [x] [`influence.ipynb`](./notebooks/influence.ipynb): Influence analysis for **MoMDist**, DTM and RKDE-Distance in the adversarial setting (See §4.5). 
 
 
 The [scripts](./scripts/) directory contains the `.jl` source-code for the notebooks. All functions prefixed with `rtda.` are imported from the [`RobustTDA.jl` package](./src/rdpg.jl).
