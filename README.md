@@ -1,6 +1,6 @@
 # MoM Dist
 
-This repository contains the code accompanying the paper ![`Robust Topological Inference in the Presence of Outliers`](https://arxiv.org/abs/2206.01795).  The code uses the ![`RobustTDA.jl`](https://github.com/sidv23/RobustTDA.jl/) package for computing **MoMDist**-weighted filtrations.
+This repository contains the code accompanying the paper ![`Robust Topological Inference in the Presence of Outliers`](https://arxiv.org/abs/2206.01795).  The code uses the ![`RobustTDA.jl`](https://github.com/sidv23/RobustTDA.jl) package for computing **MoMDist**-weighted filtrations.
 
 
 # Getting Started
