@@ -1,6 +1,6 @@
 # MoM Dist
 
-This repository contains the code accompanying the paper ![`Robust Topological Inference in the Presence of Outliers`](https://arxiv.org/abs/2206.01795).  The code uses the ![`RobustTDA.jl`](https://github.com/sidv23/RobustTDA.jl) package for computing **MoMDist**-weighted filtrations.
+This repository contains the code accompanying the paper [`Robust Topological Inference in the Presence of Outliers`](https://arxiv.org/abs/2206.01795).  The code uses the [`RobustTDA.jl`](https://github.com/sidv23/RobustTDA.jl) package for computing **MoMDist**-weighted filtrations.
 
 
 # Getting Started
@@ -49,7 +49,7 @@ The [scripts](./scripts/) directory contains the `.jl` source-code for the noteb
 
 ## Troubleshooting
 
-The code here uses the [Ripserer.jl](https://github.com/mtsch/Ripserer.jl) backend for computing persistent homology. The exact computation of persistent homology is achieved using the **Alpha** complex which, additionally, uses the ![MiniQHull.jl](https://github.com/gridap/MiniQhull.jl) library, which has a known incompatibility with the Windows operating system (![see here](https://github.com/gridap/MiniQhull.jl/issues/5)). If you're using Windows, then you can either:
+The code here uses the [Ripserer.jl](https://github.com/mtsch/Ripserer.jl) backend for computing persistent homology. The exact computation of persistent homology is achieved using the **Alpha** complex which, additionally, uses the [MiniQHull.jl](https://github.com/gridap/MiniQhull.jl) library, which has a known incompatibility with the Windows operating system ([see here](https://github.com/gridap/MiniQhull.jl/issues/5)). If you're using Windows, then you can either:
 1. Use the windows subsystem for linux to run the code here, or
 2. You can change the relevant parts of the code to not use the Alpha complex, e.g., `Alpha(Xn)` => `Xn`. 
 
